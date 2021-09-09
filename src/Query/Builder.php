@@ -8,6 +8,7 @@ use Hey\Lacassa\Connection;
 use Hey\Lacassa\Collection;
 use InvalidArgumentException;
 use Illuminate\Database\Query\Builder as BaseBuilder;
+use Illuminate\Support\Str;
 
 class Builder extends BaseBuilder
 {
@@ -107,9 +108,27 @@ class Builder extends BaseBuilder
      *
      * @return $this
      */
-    public function from($collection)
+    /*public function from($collection)
     {
         return parent::from($collection);
+    }*/
+
+        /**
+     * Set the table which the query is targeting.
+     *
+     * @param  \Closure|\Illuminate\Database\Query\Builder|string  $table
+     * @param  string|null  $as
+     * @return $this
+     */
+    public function from($table, $as = null)
+    {
+        if ($this->isQueryable($table)) {
+            return $this->fromSub($table, $as);
+        }
+
+        $this->from = $as ? "{$table} as {$as}" : $table;
+
+        return $this;
     }
 
     /**

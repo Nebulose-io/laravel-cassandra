@@ -33,7 +33,7 @@ class Builder extends BaseBuilder
      */
     protected function createBlueprint($table, Closure $callback = null)
     {
-        return new Blueprint($this->connection, $table);
+        return new Blueprint($this->connection, $callback, $table);
     }
 
     /**

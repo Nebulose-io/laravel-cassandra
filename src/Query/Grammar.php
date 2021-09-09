@@ -139,6 +139,7 @@ class Grammar extends BaseGrammar
      */
     public function compileUpdateCollections(BaseBuilder $query)
     {
+        if (!isset($query->bindings['updateCollection'])) return '';
         $updateCollections = collect($query->bindings['updateCollection']);
 
         $updateCollectionCql = $updateCollections->map(function ($collection, $key) {

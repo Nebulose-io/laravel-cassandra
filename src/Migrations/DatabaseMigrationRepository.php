@@ -146,6 +146,20 @@ class DatabaseMigrationRepository implements MigrationRepositoryInterface
         });
     }
 
+    public function deleteRepository()
+    {
+        $schema = $this->getConnection()->getSchemaBuilder();
+        $schema->drop($this->table);
+    }
+
+    public function getMigrationBatches()
+    {
+        return $this->table()
+                ->orderBy('batch', 'asc')
+                ->orderBy('migration', 'asc')
+                ->pluck('batch', 'migration')->all();
+    }
+
     /**
      * Determine if the migration repository exists.
      *

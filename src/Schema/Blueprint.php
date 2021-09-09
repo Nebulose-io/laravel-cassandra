@@ -2,6 +2,7 @@
 
 namespace Hey\Lacassa\Schema;
 
+use Closure;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Schema\Blueprint as BaseBluprint;
 use Illuminate\Database\Schema\Grammars\Grammar as BaseGrammar;
@@ -17,15 +18,24 @@ class Blueprint extends BaseBluprint
 
     protected $primary;
 
-    /**
+        /**
+     * Create a new schema blueprint.
+     *
+     * @param  string  $table
+     * @param  \Closure|null  $callback
+     * @param  string  $prefix
      * @return void
      */
-    public function __construct(Connection $connection, $table)
+    public function __construct(Connection $connection, Closure $callback = null, $table)
     {
         $this->connection = $connection;
         $this->table = $table;
-    }
 
+        if (! is_null($callback)) {
+            $callback($this);
+        }
+    }
+    
     /**
      * Get the columns on the blueprint that should be added.
      *
@@ -50,7 +60,7 @@ class Blueprint extends BaseBluprint
      */
     public function toSql(Connection $connection, BaseGrammar $grammar)
     {
-        $this->addImpliedCommands();
+        $this->addImpliedCommands($grammar);
 
         $statements = [];
         // Each type of command has a corresponding compiler function on the schema
@@ -240,14 +250,15 @@ class Blueprint extends BaseBluprint
         return $this->addColumn('set', $column, compact('collectionType'));
     }
 
+
     /**
      * Create a new timestamp column on the table.
      *
-     * @param string $column
-     *
-     * @return \Illuminate\Support\Fluent
+     * @param  string  $column
+     * @param  int  $precision
+     * @return \Illuminate\Database\Schema\ColumnDefinition
      */
-    public function timestamp($column)
+    public function timestamp($column, $precision = 0)
     {
         return $this->addColumn('timestamp', $column);
     }
@@ -336,14 +347,15 @@ class Blueprint extends BaseBluprint
     }
 
     /**
-     * Add a "deleted at" timestamp and deleted boolean for the table.
+     * Add a "deleted at" timestamp for the table.
      *
-     * @return void
+     * @param  string  $column
+     * @param  int  $precision
+     * @return \Illuminate\Database\Schema\ColumnDefinition
      */
-    public function softDeletes()
+    public function softDeletes($column = 'deleted_at', $precision = 0)
     {
-        $this->boolean('deleted');
-        $this->timestamp('deleted_at');
+        return $this->timestamp($column, $precision)->nullable();
     }
 
     /**
@@ -351,7 +363,7 @@ class Blueprint extends BaseBluprint
      *
      * @return bool
      */
-    protected function creating()
+    public function creating()
     {
         foreach ($this->commands as $command) {
             if (in_array($command->name, ['create', 'createType'])) {

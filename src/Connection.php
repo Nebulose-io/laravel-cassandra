@@ -2,7 +2,6 @@
 
 namespace Hey\Lacassa;
 
-use Cassandra;
 use Hey\Lacassa\Query\Builder as QueryBuilder;
 use Hey\Lacassa\Query\Grammar as QueryGrammar;
 use Hey\Lacassa\Schema\Builder as SchemaBuilder;
@@ -38,11 +37,11 @@ class Connection extends BaseConnection
     /**
      * Begin a fluent query against a database table.
      *
-     * @param string $table
-     *
+     * @param  \Closure|\Illuminate\Database\Query\Builder|string  $table
+     * @param  string|null  $as
      * @return \Hey\Lacassa\Query\Builder
      */
-    public function table($table)
+    public function table($table, $as = null)
     {
         return $this->getDefaultQueryBuilder()->from($table);
     }
@@ -97,10 +96,10 @@ class Connection extends BaseConnection
      */
     protected function createConnection(array $config)
     {
-        $builder = Cassandra::cluster()
+        return \Cassandra::cluster()
             ->withContactPoints($config['host'] ?? '127.0.0.1')
-            ->withPort(intval($config['port'] ?? '7000'));
-        if (array_key_exists('page_size', $config) && !empty($config['page_size'])) {
+            ->withPort(intval($config['port'] ?? '7000'))->build()->connect('nebulose');
+        /*if (array_key_exists('page_size', $config) && !empty($config['page_size'])) {
             $builder->withDefaultPageSize(intval($config['page_size'] ?? '5000'));
         }
         if (array_key_exists('consistency', $config) && in_array(strtoupper($config['consistency']), [
@@ -121,9 +120,9 @@ class Connection extends BaseConnection
         }
         if (array_key_exists('username', $config) && array_key_exists('password', $config)) {
             $builder->withCredentials($config['username'], $config['password']);
-        }
+        }*/
 
-        return $builder->build()->connect($config['keyspace']);
+        //return $builder->build()->connect($config['keyspace']);
     }
 
     /**
@@ -182,11 +181,7 @@ class Connection extends BaseConnection
 
     public function statement($query, $bindings = [])
     {
-        return $this->run($query, $bindings, function ($me, $query, $bindings) {
-            if ($me->pretending()) {
-                return [];
-            }
-
+        return $this->run($query, $bindings, function ($query, $bindings) {
             $statement = $this->connection->prepare($query);
             
             return $this->connection->execute($statement, ['arguments' => $bindings]);

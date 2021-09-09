@@ -67,4 +67,9 @@ class InstallCassandraCommand extends Command
             ['database', null, InputOption::VALUE_OPTIONAL, 'The database connection to use.'],
         ];
     }
+
+    public function __invoke()
+    {
+        $this->fire();
+    }
 }

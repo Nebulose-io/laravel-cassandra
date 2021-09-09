@@ -8,6 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use Hey\Lacassa\Migrations\DatabaseMigrationRepository;
 use Hey\Lacassa\Console\Migrations\InstallCassandraCommand;
 use Hey\Lacassa\Console\Migrations\MigrateCassandraCommand;
+use Illuminate\Database\Connection as LaravelConnection;
 
 class CassandraServiceProvider extends ServiceProvider
 {
@@ -28,25 +29,29 @@ class CassandraServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        LaravelConnection::resolverFor('cassandra', function ($connection, $database, $prefix, $config) {
+            return new Connection($config);
+        });
         // Add database driver.
-        $this->app->resolving('db', function($db) {
+        /*$this->app->resolving('cassandra', function($db) {
             $db->extend('cassandra', function($config, $name) {
                 $config['name'] = $name;
                 return new Connection($config);
             });
-        });
+        });*/
 
-        $this->registerRepository();
-        $this->registerMigrator();
-        $this->registerMigrateCommand();
-        $this->registerInstallCommand();
+        // $this->registerRepository();
+        // $this->registerMigrator();
+        // $this->registerMigrateCommand();
+        // $this->registerInstallCommand();
 
-        $this->commands(
-            'command.cassandra.migrate',
-            'command.migrate.install.cassandra'
-        );
+        // $this->commands(
+        //     'command.cassandra.migrate',
+        //     'command.migrate.install.cassandra'
+        // );
     }
 
+    
     /**
      * Register migrate command
      *
