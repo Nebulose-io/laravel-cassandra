@@ -297,7 +297,7 @@ class Blueprint extends BaseBluprint
      *
      * @return \Illuminate\Support\Fluent
      */
-    public function uuid($column)
+    public function uuid($column = 'uuid')
     {
         return $this->addColumn('uuid', $column);
     }

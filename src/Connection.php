@@ -2,6 +2,8 @@
 
 namespace Hey\Lacassa;
 
+use Cassandra;
+use Cassandra\Session;
 use Hey\Lacassa\Query\Builder as QueryBuilder;
 use Hey\Lacassa\Query\Grammar as QueryGrammar;
 use Hey\Lacassa\Schema\Builder as SchemaBuilder;
@@ -92,37 +94,38 @@ class Connection extends BaseConnection
      *
      * @param array $config
      *
-     * @return \Cassandra\Session
+     * @return Session
      */
-    protected function createConnection(array $config)
+    protected function createConnection(array $config): Session
     {
-        return \Cassandra::cluster()
+        $builder = Cassandra::cluster()
             ->withContactPoints($config['host'] ?? '127.0.0.1')
-            ->withPort(intval($config['port'] ?? '7000'))->build()->connect('nebulose');
-        /*if (array_key_exists('page_size', $config) && !empty($config['page_size'])) {
-            $builder->withDefaultPageSize(intval($config['page_size'] ?? '5000'));
+            ->withPort((int)($config['port'] ?? '7000'));
+        if (array_key_exists('page_size', $config) && !empty($config['page_size'])) {
+            $builder->withDefaultPageSize((int)($config['page_size']));
         }
         if (array_key_exists('consistency', $config) && in_array(strtoupper($config['consistency']), [
-                'ANY', 'ONE', 'TWO', 'THREE', 'QOURUM', 'ALL', 'SERIAL',
-                'LOCAL_QUORUM', 'EACH_QOURUM', 'LOCAL_SERIAL', 'LOCAL_ONE',
+                'ANY', 'ONE', 'TWO', 'THREE', 'QUORUM', 'ALL', 'SERIAL',
+                'LOCAL_QUORUM', 'EACH_QUORUM', 'LOCAL_SERIAL', 'LOCAL_ONE',
             ])) {
-            $consistency = constant('\Cassandra::CONSISTENCY_'.strtoupper($config['consistency']));
-            $builder->withDefaultConsistency($consistency);
+
+            $consistency = 'CONSISTENCY_' . strtoupper($config['consistency']);
+            $builder->withDefaultConsistency(constant("Cassandra::$consistency"));
         }
         if (array_key_exists('timeout', $config) && !empty($config['timeout'])) {
-            $builder->withDefaultTimeout(intval($config['timeout']));
+            $builder->withDefaultTimeout((int)$config['timeout']);
         }
         if (array_key_exists('connect_timeout', $config) && !empty($config['connect_timeout'])) {
-            $builder->withConnectTimeout(floatval($config['connect_timeout']));
+            $builder->withConnectTimeout((float)$config['connect_timeout']);
         }
         if (array_key_exists('request_timeout', $config) && !empty($config['request_timeout'])) {
-            $builder->withRequestTimeout(floatval($config['request_timeout']));
+            $builder->withRequestTimeout((float)$config['request_timeout']);
         }
         if (array_key_exists('username', $config) && array_key_exists('password', $config)) {
             $builder->withCredentials($config['username'], $config['password']);
-        }*/
+        }
 
-        //return $builder->build()->connect($config['keyspace']);
+        return $builder->build()->connect($config['keyspace']);
     }
 
     /**
